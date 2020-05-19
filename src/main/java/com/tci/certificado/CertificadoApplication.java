@@ -9,7 +9,6 @@ import java.io.File;
 public class CertificadoApplication {
 
 	public static void main(String[] args) {
-		File test2 = new File("almacen-test.txt");
 		InicioActualiacionCertificado inicioActualiacionCertificado = new InicioActualiacionCertificado();
 //		SpringApplication.run(CertificadoApplication.class, args);
 	}

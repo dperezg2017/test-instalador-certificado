@@ -2,11 +2,12 @@ package com.tci.certificado.task;
 
 import com.tci.certificado.util.Constantes;
 import com.tci.certificado.util.Utilitario;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IniciarServicioTask {
 
-    Logger logger = Logger.getLogger(IniciarServicioTask.class);
+private static final Logger logger = LoggerFactory.getLogger(IniciarServicioTask.class);
     Utilitario utilitario = new Utilitario();
     Constantes constante = new Constantes();
 

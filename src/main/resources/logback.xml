@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p - [%20.20t] %-40.40logger{39} : %m%n"/>
+
+    <appender name="SERVER_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>log/tci-actualizacion-certificado.log</File>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/tci-actualizacion-certificado.%d.%i.log.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>20MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="org.hibernate">
+        <level value="INFO"/>
+    </logger>
+    <logger name="org.springframework">
+        <level value="INFO"/>
+    </logger>
+    <logger name="org.springframework.ws.client.MessageTracing.sent">
+        <level value="TRACE"/>
+    </logger>
+	<logger name="org.springframework.integration.expression.ExpressionUtils">
+        <level value="ERROR"/>
+    </logger>
+    <logger name="org.springframework.ws.client.MessageTracing.received">
+        <level value="TRACE"/>
+    </logger>
+
+    <!-- logging de transacciones (commit | rollback) -->
+    <logger name="org.springframework.orm">
+        <level value="INFO"/>
+    </logger>
+    <!-- fin logging de transacciones -->
+    <root level="INFO">
+        <appender-ref ref="SERVER_LOG_FILE"/>
+    </root>
+</configuration>
+

@@ -51,7 +51,6 @@ public class Utilitario {
         }
     }
 
-
     public String obtenerRutaServicioInstaladoRaiz() throws IOException {
         String rutaServicioInstalado = obtenerRutaServicioInstaladoBin();
         return (rutaServicioInstalado != null) ? rutaServicioInstalado.substring(0, rutaServicioInstalado.indexOf("\\bin")) : constante.NO_EXISTE;

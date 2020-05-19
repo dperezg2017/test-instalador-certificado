@@ -3,18 +3,19 @@ package com.tci.certificado.core;
 import com.tci.certificado.task.DetenerServicioTask;
 import com.tci.certificado.task.IniciarServicioTask;
 import com.tci.certificado.util.Utilitario;
-import org.apache.log4j.Logger;
-import org.springframework.util.ResourceUtils;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import java.io.*;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Component
 public class InicioActualiacionCertificado implements Runnable {
 
     Utilitario utilitario = new Utilitario();
-    private static Logger logger = Logger.getLogger(InicioActualiacionCertificado.class);
+    private static final Logger logger = LoggerFactory.getLogger(InicioActualiacionCertificado.class);
 
     public InicioActualiacionCertificado() {
 
@@ -67,10 +68,10 @@ public class InicioActualiacionCertificado implements Runnable {
 
     public void actualizarCertificado(File certificadoAntiguo) {
         try {
-            File origen = ResourceUtils.getFile("classpath:almacen.jks");
+//            File origen = ResourceUtils.getFile("classpath:almacen.jks");
             File destino = new File(certificadoAntiguo.getAbsolutePath());
             try {
-                InputStream in = new FileInputStream(origen);
+                InputStream in = this.getClass().getResourceAsStream("/almacen.jks");
                 OutputStream out = new FileOutputStream(destino);
                 byte[] buf = new byte[1024];
                 int len;
