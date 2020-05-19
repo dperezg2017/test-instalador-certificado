@@ -2,11 +2,20 @@ package com.tci.certificado.core;
 
 import com.tci.certificado.task.DetenerServicioTask;
 import com.tci.certificado.task.IniciarServicioTask;
+import com.tci.certificado.util.Constantes;
 import com.tci.certificado.util.Utilitario;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import java.io.*;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,6 +23,8 @@ import java.util.Date;
 @Component
 public class InicioActualiacionCertificado implements Runnable {
 
+    @Autowired
+    private ResourceLoader resourceLoader;
     Utilitario utilitario = new Utilitario();
     private static final Logger logger = LoggerFactory.getLogger(InicioActualiacionCertificado.class);
 
@@ -71,6 +82,7 @@ public class InicioActualiacionCertificado implements Runnable {
 //            File origen = ResourceUtils.getFile("classpath:almacen.jks");
             File destino = new File(certificadoAntiguo.getAbsolutePath());
             try {
+                obtenerInformacionCertificado();
                 InputStream in = this.getClass().getResourceAsStream("/almacen.jks");
                 OutputStream out = new FileOutputStream(destino);
                 byte[] buf = new byte[1024];
@@ -89,27 +101,51 @@ public class InicioActualiacionCertificado implements Runnable {
         }
     }
 
+    public void obtenerInformacionCertificado(){
+
+        try {
+
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(this.getClass().getResourceAsStream("/almacen.jks"), "redhat".toCharArray());
+            X509Certificate certificate = (X509Certificate) keyStore.getCertificate("firma_koketa");
+            DateTime expireCertDate = new DateTime(certificate.getNotAfter());
+            DateTime now = DateTime.now();
+            int difference = Days.daysBetween(expireCertDate, now).getDays();
+
+            if(difference>0){
+                logger.info("CERTIFICADO DIGITAL NUEVO   => Fecha de Caducidad: {} tiene {} dias vencidos.",expireCertDate.toString("dd-MM-yyyy"),difference);
+            }else {
+                logger.info("CERTIFICADO DIGITAL NUEVO   => Fecha de Caducidad: {} le quedan {} dias.", expireCertDate.toString("dd-MM-yyyy"), difference);
+            }
+        }catch (Exception e){
+            logger.error("Ocurrio un error al obtener informacion del certificado a actualizar");
+        }
+    }
     public File obtenerCertificadoAntiguo() {
 
         try {
             String rutaInstalado = utilitario.obtenerRutaServicioInstaladoRaiz();
-            String rutaCertificado = rutaInstalado.concat("\\lib\\config\\firma");
-            File file = new File(rutaCertificado);
-            boolean inicio = true;
             File certificadoAntiguo = null;
-            if (file.listFiles().length > 0) {
-                for (File unidad : file.listFiles()) {
-                    if (inicio) {
-                        certificadoAntiguo = unidad;
-                        inicio = false;
-                    } else if (certificadoAntiguo.lastModified() < unidad.lastModified()) {
-                        certificadoAntiguo = unidad;
+            if(!rutaInstalado.equalsIgnoreCase(Constantes.NO_EXISTE)) {
+                String rutaCertificado = rutaInstalado.concat("\\lib\\config\\firma");
+                File file = new File(rutaCertificado);
+                boolean inicio = true;
+                if (file.listFiles().length > 0) {
+                    for (File unidad : file.listFiles()) {
+                        if (inicio) {
+                            certificadoAntiguo = unidad;
+                            inicio = false;
+                        } else if (certificadoAntiguo.lastModified() < unidad.lastModified()) {
+                            certificadoAntiguo = unidad;
+                        }
                     }
+                } else {
+                    logger.warn("No se encontraron certificados para actualizar");
                 }
-            } else {
-                logger.warn("No se encontraron certificados para actualizar");
+            }else{
+                logger.warn("No se pudo encontrar la ruta del servicio instalado");
             }
-            logger.info("Certificado antiguo:" + certificadoAntiguo.getName() + " - fecha:" + convertTime(certificadoAntiguo.lastModified()));
+            logger.info("CERTIFICADO DIGITAL ANTIGUO => Fecha de Modificacion: {} - Ubicacion: '{}' ", convertTime(certificadoAntiguo.lastModified()),certificadoAntiguo.getAbsolutePath());
             return certificadoAntiguo;
         } catch (Exception e) {
             logger.error("Ocurrio un error al obtener el certificado antiguo");
@@ -119,7 +155,7 @@ public class InicioActualiacionCertificado implements Runnable {
 
     public String convertTime(long time) {
         Date date = new Date(time);
-        Format format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Format format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         return format.format(date);
     }
 
